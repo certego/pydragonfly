@@ -1,5 +1,5 @@
-from typing import TypedDict, List, Dict, Union
-from typing_extensions import Literal
+from typing import List, Dict, Union
+from typing_extensions import Literal, TypedDict
 
 TRequestMethods = Literal["GET", "POST", "PUT", "PATCH", "DELETE"]
 

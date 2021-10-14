@@ -1,6 +1,11 @@
 name: Linter & Tests
 
-on: [push, pull_request]
+on:
+  pull_request:
+    branches: [main, develop]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
 
 jobs:
   test:
