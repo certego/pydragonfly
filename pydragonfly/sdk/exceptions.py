@@ -1,3 +1,3 @@
-from drf_client import APIClientException
+from django_rest_client import APIClientException
 
 DragonflyException = APIClientException

@@ -1,11 +1,11 @@
 from typing import Optional
 
-from drf_client import (
+from django_rest_client import (
     APIResponse,
     APIResource,
     RetrievableAPIResourceMixin,
 )
-from drf_client.types import Toid, TParams
+from django_rest_client.types import Toid, TParams
 
 
 class Sample(

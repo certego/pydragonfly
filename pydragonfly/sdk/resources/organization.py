@@ -1,12 +1,12 @@
 from typing import Optional
 import dataclasses
-from drf_client import (
+from django_rest_client import (
     APIResource,
     APIResponse,
     CreateableAPIResourceMixin,
     SingletonAPIResourceMixin,
 )
-from drf_client.types import TParams
+from django_rest_client.types import TParams
 
 
 @dataclasses.dataclass

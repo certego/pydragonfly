@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from unittest import TestCase, SkipTest
 
-from drf_client import APIResource
+from django_rest_client import APIResource
 from pydragonfly import Dragonfly, DragonflyException
 
 from tests import TEST_DRAGONFLY_API_KEY, TEST_DRAGONFLY_URL

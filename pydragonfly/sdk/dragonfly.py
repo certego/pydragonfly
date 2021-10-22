@@ -1,5 +1,5 @@
 import logging
-from drf_client import APIClient
+from django_rest_client import APIClient
 
 from ..version import VERSION
 from .resources import (

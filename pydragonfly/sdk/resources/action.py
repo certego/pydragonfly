@@ -1,4 +1,4 @@
-from drf_client import (
+from django_rest_client import (
     APIResource,
     RetrievableAPIResourceMixin,
     ListableAPIResourceMixin,

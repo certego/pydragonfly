@@ -3,14 +3,14 @@ import dataclasses
 from typing import Optional, List
 from typing_extensions import Literal
 
-from drf_client import (
+from django_rest_client import (
     APIResponse,
     APIResource,
     RetrievableAPIResourceMixin,
     ListableAPIResourceMixin,
     PaginationAPIResourceMixin,
 )
-from drf_client.types import Toid, TParams
+from django_rest_client.types import Toid, TParams
 
 
 @dataclasses.dataclass
