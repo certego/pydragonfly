@@ -1,5 +1,5 @@
 # sdk
-git+https://github.com/certego/django-rest-client.git@main
+git+https://github.com/certego/django-rest-client.git#egg=django_rest_client
 typing_extensions
 dataclasses; python_version < '3.7'
 # cli
