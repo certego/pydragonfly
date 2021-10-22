@@ -7,7 +7,7 @@ from .._utils import (
     json_flag_option,
     add_options,
 )
-from ._renderables import _display_all_profile
+from ._renderables import _paginate_table, _generate_profile_table
 
 
 @click.group("profile")
@@ -24,14 +24,15 @@ def profile():
 @click.pass_context
 def profile_list(ctx: ClickContext, as_json: bool):
     ctx.obj._logger.info("Requesting list of profiles..")
+    ctx.obj._logger.info(f"[+] GUI: {ctx.obj._server_url}/dashboard/profiles")
     params = TParams(ordering=["-created_at"])
     try:
-        response = ctx.obj.Profile.list(params=params)
         if as_json:
+            response = ctx.obj.Profile.list(params=params)
             rprint(response.data)
         else:
-            _display_all_profile(response.data["results"])
-        ctx.obj._logger.info(f"[+] GUI: {ctx.obj._server_url}/dashboard/profiles")
+            generator = ctx.obj.Profile.auto_paging_iter(params=params)
+            _paginate_table(generator, _generate_profile_table)
     except DragonflyException as exc:
         ctx.obj._logger.fatal(str(exc))
 

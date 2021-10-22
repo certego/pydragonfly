@@ -79,8 +79,7 @@ def _display_single_analysis(data: Dict) -> None:
             console.print(p)
 
 
-def _display_all_analysis(rows: List[Dict]) -> None:
-    console = Console()
+def _generate_analysis_table(rows: List[Dict]) -> Table:
     table = Table(
         show_header=True, title="Latest Analysis", box=box.DOUBLE_EDGE, expand=True
     )
@@ -106,11 +105,10 @@ def _display_all_analysis(rows: List[Dict]) -> None:
             get_status_text(el["evaluation"]),
             get_weight_text(el["weight"]),
         )
-    console.print(table, justify="center")
+    return table
 
 
-def _display_all_profile(rows: List[Dict]) -> None:
-    console = Console()
+def _generate_profile_table(rows: List[Dict]) -> Table:
     table = Table(
         show_header=True, title="Latest Profiles", box=box.DOUBLE_EDGE, expand=True
     )
@@ -125,11 +123,10 @@ def _display_all_profile(rows: List[Dict]) -> None:
             el["emulator"],
             f"[cyan]{el['read']}[/]",
         )
-    console.print(table, justify="center")
+    return table
 
 
-def _display_all_rule(rows: List[Dict]) -> None:
-    console = Console()
+def _generate_rule_table(rows: List[Dict]) -> Table:
     table = Table(
         show_header=True, title="Latest Rules", box=box.DOUBLE_EDGE, expand=True
     )
@@ -155,4 +152,16 @@ def _display_all_rule(rows: List[Dict]) -> None:
             get_json_syntax(el["variables"]),
             get_weight_text(el["weight"]),
         )
-    console.print(table, justify="center")
+    return table
+
+
+def _paginate_table(generator, generate_table_fn) -> None:
+    console = Console()
+    for resp, page in generator:
+        console.print(generate_table_fn(resp.data["results"]), justify="center")
+        console.print(
+            f"page: {page}, total pages: {resp.data['total_pages']}",
+            justify="center",
+        )
+        console.input("\n[ENTER] next page [CTRL+C] abort...")
+        console.clear()

@@ -10,7 +10,11 @@ from .._utils import (
     get_success_text,
     add_options,
 )
-from ._renderables import _display_single_analysis, _display_all_analysis
+from ._renderables import (
+    _display_single_analysis,
+    _paginate_table,
+    _generate_analysis_table,
+)
 
 
 @click.group("analysis")
@@ -56,18 +60,19 @@ def analysis():
 @click.pass_context
 def analysis_list(ctx: ClickContext, status: str, evaluation: str, as_json: bool):
     ctx.obj._logger.info("Requesting list of analysis..")
+    ctx.obj._logger.info(f"[+] GUI: {ctx.obj._server_url}/history/analysis")
     params = TParams(ordering=["-created_at"])
     if status:
         params["status"] = status.upper()
     if evaluation:
         params["evaluation"] = evaluation.upper()
     try:
-        response = ctx.obj.Analysis.list(params=params)
         if as_json:
+            response = ctx.obj.Analysis.list(params=params)
             rprint(response.data)
         else:
-            _display_all_analysis(response.data["results"])
-        ctx.obj._logger.info(f"[+] GUI: {ctx.obj._server_url}/history/analysis")
+            generator = ctx.obj.Analysis.auto_paging_iter(params=params)
+            _paginate_table(generator, _generate_analysis_table)
     except DragonflyException as exc:
         ctx.obj._logger.fatal(str(exc))
 
