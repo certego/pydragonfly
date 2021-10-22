@@ -1,5 +1,6 @@
 import logging
 from django_rest_client import APIClient
+from django_rest_client.types import THeaders
 
 from ..version import VERSION
 from .resources import (
@@ -19,7 +20,13 @@ from .resources import (
 class Dragonfly(APIClient):
     # overwrite
     _server_url: str = "https://dragonfly.certego.net"
-    _headers = {"User-Agent": f"PyDragonfly/{VERSION}"}
+
+    @property
+    def _headers(self) -> THeaders:
+        return {
+            **super()._headers,
+            "User-Agent": f"PyDragonfly/{VERSION}",
+        }
 
     def __init__(self, api_key: str, logger: logging.Logger = None):
         super().__init__(api_key, None, logger)
