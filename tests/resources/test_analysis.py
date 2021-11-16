@@ -18,10 +18,10 @@ class AnalysisResourceTestCase(APIResourceBaseTestCase):
     @if_mock_connections(
         patch(
             "requests.Session.request",
-            return_value=MockAPIResponse({"sample_id": 1}, 201),
+            return_value=MockAPIResponse({"id": 1}, 201),
         )
-    )
-    @generic_201_mock
+    )  # POST /api/sample
+    @generic_201_mock  # POST /api/analysis
     def test__create(self, *args, **kwargs):
         response = self.resource.create(
             data=self.resource.CreateAnalysisRequestBody(profiles=[1]),
