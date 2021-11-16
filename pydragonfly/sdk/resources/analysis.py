@@ -1,4 +1,3 @@
-import json
 import dataclasses
 from typing import Optional, List
 from typing_extensions import Literal
@@ -21,6 +20,7 @@ class CreateAnalysisRequestBody:
     root: bool = False
     os: Optional[Literal["WINDOWS", "LINUX"]] = None
     arguments: Optional[List[str]] = None
+    dll_entrypoints: Optional[List[str]] = None
 
 
 class Analysis(
@@ -53,21 +53,27 @@ class Analysis(
         sample_buffer: bytes,
         params: Optional[TParams] = None,
     ) -> APIResponse:
-        url = "api/create_analysis"
-        post_data = {
-            "data": json.dumps(
-                {k: v for k, v in dataclasses.asdict(data).items() if v is not None}
-            )
-        }
-        post_files = {"sample": (sample_name, sample_buffer)}
-        response = cls._request(
+        # first: POST sample uploading it
+        url1 = "api/sample"
+        req_data1 = {"sample": (sample_name, sample_buffer)}
+        response1 = cls._request(
             "POST",
-            url=url,
-            data=post_data,
-            files=post_files,
+            url=url1,
+            files=req_data1,
+        )
+        # second: POST analysis using the new sample ID
+        url2 = "api/create_analysis"
+        req_data2 = {
+            **{k: v for k, v in dataclasses.asdict(data).items() if v is not None},
+            "sample_id": response1.data["id"],
+        }
+        response2 = cls._request(
+            "POST",
+            url=url2,
+            data=req_data2,
             params=params,
         )
-        return response
+        return response2
 
     @classmethod
     def aggregate_evaluations(

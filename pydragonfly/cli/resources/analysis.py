@@ -130,6 +130,15 @@ def analysis_retrieve(ctx: ClickContext, analysis_id: int, as_json: bool):
     help="Comma separated list of extra command line arguments for the emulator",
 )
 @click.option(
+    "-dl",
+    "--dll-entrypoints",
+    type=str,
+    default="",
+    help="""Comma separated list of DLL entrypoints.
+    Supports only DLL sample. Default: all entrypoints.
+    """,
+)
+@click.option(
     "-a",
     "--allow-actions",
     is_flag=True,
@@ -160,6 +169,7 @@ def analysis_create(
     profiles_list: str,
     operating_system: str,
     arguments_list: str,
+    dll_entrypoints: str,
     allow_actions: bool,
     root: bool,
     private: bool,
@@ -167,6 +177,7 @@ def analysis_create(
     fpath = Path(filepath)
     profiles = profiles_list.split(",") if len(profiles_list) else []
     arguments = arguments_list.split(",") if len(arguments_list) else []
+    dll_entrypoints = dll_entrypoints.split(",") if len(dll_entrypoints) else []
     try:
         ctx.obj._logger.info(
             f"""
@@ -185,6 +196,7 @@ Requesting analysis...
                 if operating_system in ["WINDOWS", "LINUX"]
                 else None,
                 arguments=arguments,
+                dll_entrypoints=dll_entrypoints,
                 allow_actions=allow_actions,
                 root=root,
                 private=private,
