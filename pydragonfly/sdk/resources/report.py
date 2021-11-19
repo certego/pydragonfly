@@ -23,7 +23,7 @@ class Report(
     OBJECT_NAME = "api.report"
     EXPANDABLE_FIELDS = {
         "retrieve": ["profile", "analysis"],
-        "list": ["profile", "analysis", "structs_count"],
+        "list": ["profile", "analysis"],
     }
     ORDERING_FIELDS = [
         "time__start_analysis",

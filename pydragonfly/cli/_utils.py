@@ -32,10 +32,9 @@ def get_status_text(status: str, as_text=True):
         "suspicious": ("#CE5C00", ""),
         "malicious": ("#CC0000", ""),
         # statuses
-        "queued": ("#CE5C00", str(Emoji("gear"))),
+        "analyzed": ("#73D216", str(Emoji("heavy_check_mark"))),
         "pending": ("#CE5C00", str(Emoji("gear"))),
         "running": ("#CE5C00", str(Emoji("gear"))),
-        "analyzed": ("#73D216", str(Emoji("heavy_check_mark"))),
         "failed": ("#CC0000", str(Emoji("cross_mark"))),
         "revoked": ("#CC0000", str(Emoji("cross_mark"))),
     }

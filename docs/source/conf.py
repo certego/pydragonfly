@@ -13,7 +13,7 @@
 import os
 import sys
 
-VERSION = "0.0.2"
+VERSION = "0.0.1"
 GITHUB_URL = "https://github.com/certego/pydragonfly"
 
 # I've simplified this a little to use append instead of insert.

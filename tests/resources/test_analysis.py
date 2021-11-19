@@ -1,13 +1,6 @@
 from . import APIResourceBaseTestCase, APIResource
 
-from tests.mock_utils import (
-    generic_200_mock,
-    generic_201_mock,
-    generic_204_mock,
-    if_mock_connections,
-    patch,
-    MockAPIResponse,
-)
+from tests.mock_utils import generic_200_mock, generic_201_mock, generic_204_mock
 
 
 class AnalysisResourceTestCase(APIResourceBaseTestCase):
@@ -15,13 +8,7 @@ class AnalysisResourceTestCase(APIResourceBaseTestCase):
     def resource(self) -> APIResource:
         return self.df.Analysis
 
-    @if_mock_connections(
-        patch(
-            "requests.Session.request",
-            return_value=MockAPIResponse({"id": 1}, 201),
-        )
-    )  # POST /api/sample
-    @generic_201_mock  # POST /api/analysis
+    @generic_201_mock
     def test__create(self, *args, **kwargs):
         response = self.resource.create(
             data=self.resource.CreateAnalysisRequestBody(profiles=[1]),

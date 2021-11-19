@@ -1,3 +1,4 @@
+import json
 import dataclasses
 from typing import Optional, List
 from typing_extensions import Literal
@@ -7,7 +8,6 @@ from django_rest_client import (
     APIResource,
     RetrievableAPIResourceMixin,
     ListableAPIResourceMixin,
-    CreateableAPIResourceMixin,
     PaginationAPIResourceMixin,
 )
 from django_rest_client.types import Toid, TParams
@@ -21,14 +21,12 @@ class CreateAnalysisRequestBody:
     root: bool = False
     os: Optional[Literal["WINDOWS", "LINUX"]] = None
     arguments: Optional[List[str]] = None
-    dll_entrypoints: Optional[List[str]] = None
 
 
 class Analysis(
     APIResource,
     RetrievableAPIResourceMixin,
     ListableAPIResourceMixin,
-    CreateableAPIResourceMixin,
     PaginationAPIResourceMixin,
 ):
     """
@@ -55,23 +53,21 @@ class Analysis(
         sample_buffer: bytes,
         params: Optional[TParams] = None,
     ) -> APIResponse:
-        # first: POST sample uploading it
-        resp1 = cls._request(
+        url = "api/create_analysis"
+        post_data = {
+            "data": json.dumps(
+                {k: v for k, v in dataclasses.asdict(data).items() if v is not None}
+            )
+        }
+        post_files = {"sample": (sample_name, sample_buffer)}
+        response = cls._request(
             "POST",
-            url="api/sample",
-            files={"sample": (sample_name, sample_buffer)},
-        )
-        # second: POST analysis using the new sample ID
-        resp2 = cls._request(
-            "POST",
-            url=cls.class_url(),
-            json={
-                **{k: v for k, v in dataclasses.asdict(data).items() if v is not None},
-                "sample_id": resp1.data["id"],
-            },
+            url=url,
+            data=post_data,
+            files=post_files,
             params=params,
         )
-        return resp2
+        return response
 
     @classmethod
     def aggregate_evaluations(
