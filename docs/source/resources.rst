@@ -99,3 +99,13 @@ Resources
    :exclude-members: OBJECT_NAME
    :inherited-members:
    :undoc-members:
+
+
+``UserPreferences`` class
+--------------------------------
+
+.. autoclass:: pydragonfly.Dragonfly.UserPreferences
+   :members:
+   :exclude-members: OBJECT_NAME
+   :inherited-members:
+   :undoc-members:

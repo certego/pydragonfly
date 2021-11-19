@@ -14,6 +14,7 @@ from .resources import (
     Sample,
     Session,
     UserAccessInfo,
+    UserPreferences,
 )
 
 
@@ -42,3 +43,4 @@ class Dragonfly(APIClient):
     Sample = Sample
     Session = Session
     UserAccessInfo = UserAccessInfo
+    UserPreferences = UserPreferences
