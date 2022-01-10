@@ -24,9 +24,6 @@ class AnalysisResult:
         name: str
         weight: int
 
-    @classmethod
-    def failed(cls, analysis_id: Toid):
-        pass
 
     status: str
     evaluation: str = CLEAN
@@ -38,18 +35,25 @@ class AnalysisResult:
     gui_url: str
 
     def __init__(self, analysis_id: Toid):
-        self.analysis_id = analysis_id
-        self.gui_url = Analysis.instance_url(self.analysis_id)
-
-    def populate(self):
+        self.id = analysis_id
+        self.gui_url = Analysis.instance_url(self.id)
         try:
-            content = Analysis.retrieve(self.analysis_id).data
+            content = Analysis.retrieve(self.id).data
         except Exception as e:
             logger.exception(e)
             self.status = FAILED
         else:
             self.status = content["status"]
-            if self.ready():
+
+    def populate(self):
+        try:
+            content = Analysis.retrieve(self.id).data
+        except Exception as e:
+            logger.exception(e)
+            self.status = FAILED
+        else:
+            self.status = content["status"]
+            if self.is_ready():
 
                 self.evaluation: str = content["evaluation"]
                 self.score: int = (
@@ -82,7 +86,7 @@ class AnalysisResult:
                             matched_rules.add(AnalysisResult.RuleResult(name, weight))
                 self.matched_rules = list(matched_rules)
 
-    def ready(self):
+    def is_ready(self) -> bool:
         return self.status in [ANALYZED, FAILED, REVOKED]
 
 

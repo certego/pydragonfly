@@ -99,7 +99,7 @@ class Dragonfly(APIClient):
         result = self.Analysis.Result(analysis_id)
         if max_wait_cycle:
             waiting_cycle: int = 0
-            while not result.ready() and waiting_cycle < max_wait_cycle:
+            while not result.is_ready() and waiting_cycle < max_wait_cycle:
                 time.sleep(waiting_time)
                 result.populate()
                 waiting_cycle += 1
