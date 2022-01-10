@@ -24,11 +24,16 @@ class AnalysisResult:
         name: str
         weight: int
 
+        def __hash__(self):
+            return hash((self.name, self.weight))
+
+        def __eq__(self, other):
+            return self.name == other.name and self.weight == other.weight
 
     status: str
     evaluation: str = CLEAN
     score: int = 0
-    malware_family: str
+    malware_family: str = None
     malware_behaviours: List[str] = []
     errors: List[str] = []
     matched_rules: List[RuleResult] = []
@@ -44,47 +49,52 @@ class AnalysisResult:
             self.status = FAILED
         else:
             self.status = content["status"]
-
-    def populate(self):
-        try:
-            content = Analysis.retrieve(self.id).data
-        except Exception as e:
-            logger.exception(e)
-            self.status = FAILED
-        else:
-            self.status = content["status"]
             if self.is_ready():
+                self.populate(content)
 
-                self.evaluation: str = content["evaluation"]
-                self.score: int = (
-                    int(min(100, content["weight"]) / 10) if content["weight"] != 0 else 0
-                )
-                self.malware_family: Union[str, None] = (
-                    content["malware_families"][0] if content["malware_families"] else None
-                )
-                self.malware_behaviours: List[str] = content["malware_behaviours"]
-                reports: List[int] = [report["id"] for report in content["reports"]]
-                self.errors: List[str] = list(set(
-                    [report["error"] for report in content["reports"] if report["error"]]
-                ))
-                matched_rules: Set[AnalysisResult.RuleResult] = set()
-                from pydragonfly.sdk.resources import Report
+    def populate(self, data: Optional[dict] = None):
+        if data is None:
+            try:
+                content = Analysis.retrieve(self.id).data
+            except Exception as e:
+                logger.exception(e)
+                self.status = FAILED
+                return
+        else:
+            content = data
+        self.status = content["status"]
+        if self.is_ready():
 
-                for report_id in reports:
-                    try:
-                        # we check the rules that matched each report
-                        rules = Report.matched_rules(object_id=report_id).data
-                    except Exception as e:
-                        logger.exception(e)
-                    else:
-                        # and retrieve information about that
-                        for rule in rules:
-                            name = rule["rule"]  # name of the rule that matched
-                            weight = (
-                                int(min(100, rule["weight"]) / 10) if rule["weight"] != 0 else 0
-                            )
-                            matched_rules.add(AnalysisResult.RuleResult(name, weight))
-                self.matched_rules = list(matched_rules)
+            self.evaluation: str = content["evaluation"]
+            self.score: int = (
+                int(min(100, content["weight"]) / 10) if content["weight"] != 0 else 0
+            )
+            self.malware_family: Union[str, None] = (
+                content["malware_families"][0] if content["malware_families"] else None
+            )
+            self.malware_behaviours: List[str] = content["malware_behaviours"]
+            reports: List[int] = [report["id"] for report in content["reports"]]
+            self.errors: List[str] = list(set(
+                [report["error"] for report in content["reports"] if report["error"]]
+            ))
+            matched_rules: Set[AnalysisResult.RuleResult] = set()
+            from pydragonfly.sdk.resources import Report
+
+            for report_id in reports:
+                try:
+                    # we check the rules that matched each report
+                    rules = Report.matched_rules(object_id=report_id).data
+                except Exception as e:
+                    logger.exception(e)
+                else:
+                    # and retrieve information about that
+                    for rule in rules:
+                        name = rule["rule"]  # name of the rule that matched
+                        weight = (
+                            int(min(100, rule["weight"]) / 10) if rule["weight"] != 0 else 0
+                        )
+                        matched_rules.add(AnalysisResult.RuleResult(name, weight))
+            self.matched_rules = list(matched_rules)
 
     def is_ready(self) -> bool:
         return self.status in [ANALYZED, FAILED, REVOKED]

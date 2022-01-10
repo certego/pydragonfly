@@ -34,7 +34,8 @@ class AnalysisResultTestCase(TestCase):
 
     }
 
-
+    patch("Analysis.retrieve", return_value=result_json)
+    patch("Report.matched_rules", return_value=matched_rules_json)
     def test_populate(self):
         result = AnalysisResult(12)
         self.assertFalse(result.is_ready())
@@ -47,7 +48,9 @@ class AnalysisResultTestCase(TestCase):
         self.assertEqual(result.malware_family, "Ransomware")
         self.assertEqual(result.malware_behaviours, ["Crypt"])
         self.assertEqual(result.errors, ["Internal error"])
-        self.assertEqual(result.matched_rules, [{"rule": "TestRule", "weight": 100}])
+        self.assertEqual(len(result.matched_rules), 1)
+        self.assertEqual(result.matched_rules[0].name, "TestRule")
+        self.assertEqual(result.matched_rules[0].weight, 100)
 
 
 
