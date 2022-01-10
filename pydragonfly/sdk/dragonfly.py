@@ -52,14 +52,14 @@ class Dragonfly(APIClient):
     # utilities
 
     def analyze_file(
-            self,
-            sample_path: str,
-            profiles: List[int] = None,
-            private: bool = False,
-            root: bool = False,
-            os: str = None,
-            arguments: List[str] = None,
-            dll_entrypoints: List[str] = None,
+        self,
+        sample_path: str,
+        profiles: List[int] = None,
+        private: bool = False,
+        root: bool = False,
+        os: str = None,
+        arguments: List[str] = None,
+        dll_entrypoints: List[str] = None,
     ) -> Union[AnalysisResult]:
 
         if profiles is None:
@@ -92,10 +92,12 @@ class Dragonfly(APIClient):
         else:
             return self.analysis_result(resp["id"])
 
-
-    def analysis_result(self, analysis_id: Toid, waiting_time: int = 10,
-               max_wait_cycle: int = 30,  # 30 x 10 = 5 mins
-               ) -> AnalysisResult:
+    def analysis_result(
+        self,
+        analysis_id: Toid,
+        waiting_time: int = 10,
+        max_wait_cycle: int = 30,  # 30 x 10 = 5 mins
+    ) -> AnalysisResult:
         result = self.Analysis.Result(analysis_id)
         if max_wait_cycle:
             waiting_cycle: int = 0

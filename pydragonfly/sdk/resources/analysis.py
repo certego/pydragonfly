@@ -74,9 +74,15 @@ class AnalysisResult:
             )
             self.malware_behaviours: List[str] = content["malware_behaviours"]
             reports: List[int] = [report["id"] for report in content["reports"]]
-            self.errors: List[str] = list(set(
-                [report["error"] for report in content["reports"] if report["error"]]
-            ))
+            self.errors: List[str] = list(
+                set(
+                    [
+                        report["error"]
+                        for report in content["reports"]
+                        if report["error"]
+                    ]
+                )
+            )
             matched_rules: Set[AnalysisResult.RuleResult] = set()
             from pydragonfly.sdk.resources import Report
 
@@ -91,7 +97,9 @@ class AnalysisResult:
                     for rule in rules:
                         name = rule["rule"]  # name of the rule that matched
                         weight = (
-                            round(min(100, rule["weight"]) / 10) if rule["weight"] != 0 else 0
+                            round(min(100, rule["weight"]) / 10)
+                            if rule["weight"] != 0
+                            else 0
                         )
                         matched_rules.add(AnalysisResult.RuleResult(name, weight))
             self.matched_rules = list(matched_rules)
@@ -137,11 +145,11 @@ class Analysis(
 
     @classmethod
     def create(
-            cls,
-            data: CreateAnalysisRequestBody,
-            sample_name: str,
-            sample_buffer: bytes,
-            params: Optional[TParams] = None,
+        cls,
+        data: CreateAnalysisRequestBody,
+        sample_name: str,
+        sample_buffer: bytes,
+        params: Optional[TParams] = None,
     ) -> APIResponse:
         # first: POST sample uploading it
         resp1 = cls._request(
@@ -171,41 +179,41 @@ class Analysis(
 
     @classmethod
     def aggregate_evaluations(
-            cls,
-            params: Optional[TParams] = None,
+        cls,
+        params: Optional[TParams] = None,
     ) -> APIResponse:
         url = cls.class_url() + "/aggregate/evaluations"
         return cls._request("GET", url=url, params=params)
 
     @classmethod
     def aggregate_status(
-            cls,
-            params: Optional[TParams] = None,
+        cls,
+        params: Optional[TParams] = None,
     ) -> APIResponse:
         url = cls.class_url() + "/aggregate/status"
         return cls._request("GET", url=url, params=params)
 
     @classmethod
     def aggregate_malware_families(
-            cls,
-            params: Optional[TParams] = None,
+        cls,
+        params: Optional[TParams] = None,
     ) -> APIResponse:
         url = cls.class_url() + "/aggregate/malware_families"
         return cls._request("GET", url=url, params=params)
 
     @classmethod
     def aggregate_malware_type(
-            cls,
-            params: Optional[TParams] = None,
+        cls,
+        params: Optional[TParams] = None,
     ) -> APIResponse:
         url = cls.class_url() + "/aggregate/malware_type"
         return cls._request("GET", url=url, params=params)
 
     @classmethod
     def revoke(
-            cls,
-            object_id: Toid,
-            params: Optional[TParams] = None,
+        cls,
+        object_id: Toid,
+        params: Optional[TParams] = None,
     ) -> APIResponse:
         url = cls.instance_url(object_id) + "/revoke"
         return cls._request("POST", url=url, params=params)

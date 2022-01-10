@@ -16,10 +16,12 @@ from tests.mock_utils import (
 
 class AnalysisResultTestCase(TestCase):
 
-    matched_rules_json = [{
-        "rule" : "TestRule",
-        "weight": 97,
-    }]
+    matched_rules_json = [
+        {
+            "rule": "TestRule",
+            "weight": 97,
+        }
+    ]
 
     result_json = {
         "id": "12",
@@ -28,15 +30,17 @@ class AnalysisResultTestCase(TestCase):
         "weight": 120,
         "malware_families": ["Ransomware", "Trojan"],
         "malware_behaviours": ["Crypt", "Test"],
-        "reports":[
-            {"id": 1,
-             "error": "Internal error"}
-        ]
-
+        "reports": [{"id": 1, "error": "Internal error"}],
     }
 
-    @patch("pydragonfly.sdk.resources.analysis.Analysis.retrieve", return_value=MockAPIResponse(result_json, 200))
-    @patch("pydragonfly.sdk.resources.report.Report.matched_rules", return_value=MockAPIResponse(matched_rules_json, 200))
+    @patch(
+        "pydragonfly.sdk.resources.analysis.Analysis.retrieve",
+        return_value=MockAPIResponse(result_json, 200),
+    )
+    @patch(
+        "pydragonfly.sdk.resources.report.Report.matched_rules",
+        return_value=MockAPIResponse(matched_rules_json, 200),
+    )
     def test_populate(self, *args, **kwargs):
         result = AnalysisResult(12)
         self.assertTrue(result.is_ready())
@@ -52,7 +56,6 @@ class AnalysisResultTestCase(TestCase):
         self.assertEqual(len(result.matched_rules), 1)
         self.assertEqual(result.matched_rules[0].name, "TestRule")
         self.assertEqual(result.matched_rules[0].weight, 10)
-
 
 
 class AnalysisResourceTestCase(APIResourceBaseTestCase):
@@ -101,4 +104,3 @@ class AnalysisResourceTestCase(APIResourceBaseTestCase):
     def test__revoke(self, *args, **kwargs):
         response = self.resource.revoke(object_id=self.object_id)
         self.assertEqual(204, response.code)
-
