@@ -17,6 +17,10 @@ class MockAPIResponse:
     def json(self):
         return self.json_data
 
+    @property
+    def data(self):
+        return self.json()
+
     def raise_for_status(self):
         http_error_msg = None
         if 400 <= self.status_code < 500:

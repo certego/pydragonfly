@@ -67,7 +67,7 @@ class AnalysisResult:
 
             self.evaluation: str = content["evaluation"]
             self.score: int = (
-                int(min(100, content["weight"]) / 10) if content["weight"] != 0 else 0
+                round(min(100, content["weight"]) / 10) if content["weight"] != 0 else 0
             )
             self.malware_family: Union[str, None] = (
                 content["malware_families"][0] if content["malware_families"] else None
@@ -91,7 +91,7 @@ class AnalysisResult:
                     for rule in rules:
                         name = rule["rule"]  # name of the rule that matched
                         weight = (
-                            int(min(100, rule["weight"]) / 10) if rule["weight"] != 0 else 0
+                            round(min(100, rule["weight"]) / 10) if rule["weight"] != 0 else 0
                         )
                         matched_rules.add(AnalysisResult.RuleResult(name, weight))
             self.matched_rules = list(matched_rules)

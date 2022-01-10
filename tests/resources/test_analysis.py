@@ -13,11 +13,12 @@ from tests.mock_utils import (
     MockAPIResponse,
 )
 
+
 class AnalysisResultTestCase(TestCase):
 
     matched_rules_json = [{
         "rule" : "TestRule",
-        "weight": 120,
+        "weight": 97,
     }]
 
     result_json = {
@@ -34,23 +35,23 @@ class AnalysisResultTestCase(TestCase):
 
     }
 
-    patch("Analysis.retrieve", return_value=result_json)
-    patch("Report.matched_rules", return_value=matched_rules_json)
-    def test_populate(self):
+    @patch("pydragonfly.sdk.resources.analysis.Analysis.retrieve", return_value=MockAPIResponse(result_json, 200))
+    @patch("pydragonfly.sdk.resources.report.Report.matched_rules", return_value=MockAPIResponse(matched_rules_json, 200))
+    def test_populate(self, *args, **kwargs):
         result = AnalysisResult(12)
-        self.assertFalse(result.is_ready())
+        self.assertTrue(result.is_ready())
         self.assertEqual(result.id, 12)
         self.assertEqual(result.gui_url, Analysis.instance_url(12))
         result.populate()
         self.assertEqual(result.status, ANALYZED)
         self.assertEqual(result.evaluation, MALICIOUS)
-        self.assertEqual(result.score, 100)
+        self.assertEqual(result.score, 10)
         self.assertEqual(result.malware_family, "Ransomware")
-        self.assertEqual(result.malware_behaviours, ["Crypt"])
+        self.assertIn("Crypt", result.malware_behaviours)
         self.assertEqual(result.errors, ["Internal error"])
         self.assertEqual(len(result.matched_rules), 1)
         self.assertEqual(result.matched_rules[0].name, "TestRule")
-        self.assertEqual(result.matched_rules[0].weight, 100)
+        self.assertEqual(result.matched_rules[0].weight, 10)
 
 
 
