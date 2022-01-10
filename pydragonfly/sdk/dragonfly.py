@@ -1,12 +1,11 @@
-import dataclasses
 import logging
 import time
-from typing import List, Union, Set, Tuple
+from typing import List, Union
 
 from django_rest_client import APIClient
-from django_rest_client.types import THeaders
+from django_rest_client.types import THeaders, Toid
 
-from .const import FAILED, REVOKED, ANALYZED
+from .resources.analysis import AnalysisResult
 from ..version import VERSION
 from .resources import (
     Action,
@@ -21,24 +20,6 @@ from .resources import (
     UserAccessInfo,
     UserPreferences,
 )
-
-
-@dataclasses.dataclass
-class RuleResult:
-    name: str
-    weight: int
-
-
-@dataclasses.dataclass
-class DragonflyResult:
-    status: str
-    evaluation: str
-    score: int
-    malware_family: Union[str, None]
-    malware_behaviours: List[str]
-    errors: List[str]
-    matched_rules: List[RuleResult]
-    gui_url: str
 
 
 class Dragonfly(APIClient):
@@ -69,27 +50,17 @@ class Dragonfly(APIClient):
     UserPreferences = UserPreferences
 
     # utilities
-    @dataclasses.dataclass
-    class DragonflyResultFailure(DragonflyResult):
-        status: str = FAILED
-        evaluation: str = FAILED
-        score: int = 0
-        malware_family: Union[str, None] = None
-        malware_behaviours: List[str] = dataclasses.field(default_factory=list)
-        errors: List[str] = dataclasses.field(default_factory=list)
-        matched_rules: List[RuleResult] = dataclasses.field(default_factory=list)
 
     def analyze_file(
-        self,
-        sample_path: str,
-        retrieve_result: bool = True,
-        profiles: List[int] = None,
-        private: bool = False,
-        root: bool = False,
-        os: str = None,
-        arguments: List[str] = None,
-        dll_entrypoints: List[str] = None,
-    ) -> Union[DragonflyResult, Tuple[str, str]]:
+            self,
+            sample_path: str,
+            profiles: List[int] = None,
+            private: bool = False,
+            root: bool = False,
+            os: str = None,
+            arguments: List[str] = None,
+            dll_entrypoints: List[str] = None,
+    ) -> Union[AnalysisResult]:
 
         if profiles is None:
             profiles = [1, 2]
@@ -117,88 +88,19 @@ class Dragonfly(APIClient):
         except Exception as e:
             self._logger.exception(e)
             # if something goes wrong, we return a failure result
-            if retrieve_result:
-                return self.DragonflyResultFailure(gui_url=self._server_url)
+
         else:
-            if retrieve_result:
-                return self.retrieve_analysis(resp["id"])
-            else:
-                # if the class is not returned, at least we return the analysis id and the url
-                return resp["id"], resp["gui_url"]
+            return self.analysis_result(resp["id"])
 
-    def retrieve_analysis(
-        self,
-        analysis_id: int,
-        wait_for_completion: bool = True,
-        waiting_time: int = 10,
-        max_wait_cycle: int = 30,
-    ) -> DragonflyResult:
-        try:
-            content = self.Analysis.retrieve(analysis_id).data
-        except Exception as e:
-            self._logger.exception(e)
-            return self.DragonflyResultFailure(
-                gui_url=self.Analysis.instance_url(analysis_id)
-            )
 
-        status = content["status"]
-        # a lazy wait for the analysis to complete
-
-        if wait_for_completion:
+    def analysis_result(self, analysis_id: Toid, waiting_time: int = 10,
+               max_wait_cycle: int = 30,  # 30 x 10 = 5 mins
+               ) -> AnalysisResult:
+        result = self.Analysis.Result(analysis_id)
+        if max_wait_cycle:
             waiting_cycle: int = 0
-            while (
-                status not in [ANALYZED, FAILED, REVOKED]
-                and waiting_cycle < max_wait_cycle
-            ):
-                self._logger.debug(f"Waiting {waiting_time} because {status=}")
+            while not result.ready() and waiting_cycle < max_wait_cycle:
                 time.sleep(waiting_time)
-                try:
-                    content = self.Analysis.retrieve(object_id=analysis_id).data
-                except Exception as e:
-                    self._logger.exception(e)
-                    return self.DragonflyResultFailure(
-                        gui_url=self.Analysis.instance_url(analysis_id)
-                    )
-                status = content["status"]
+                result.populate()
                 waiting_cycle += 1
-        # there is more stuff, but I do not think that you will be interested in
-        evaluation: str = content["evaluation"]
-        score: int = (
-            int(min(100, content["weight"]) / 10) if content["weight"] != 0 else 0
-        )
-        malware_family: Union[str, None] = (
-            content["malware_families"][0] if content["malware_families"] else None
-        )
-        malware_behaviours: List[str] = content["malware_behaviours"]
-        reports: List[int] = [report["id"] for report in content["reports"]]
-        errors: Set[str] = set(
-            [report["error"] for report in content["reports"] if report["error"]]
-        )
-        matched_rules: Set[RuleResult] = set()
-        for report_id in reports:
-            try:
-                # we check the rules that matched each report
-                rules = self.Report.matched_rules(object_id=report_id).data
-            except Exception as e:
-                self._logger.exception(e)
-                return self.DragonflyResultFailure(
-                    gui_url=self.Analysis.instance_url(analysis_id)
-                )
-            # and retrieve information about that
-            for rule in rules:
-                name = rule["rule"]  # name of the rule that matched
-                weight = (
-                    int(min(100, rule["weight"]) / 10) if rule["weight"] != 0 else 0
-                )
-                matched_rules.add(RuleResult(name, weight))
-        # we can create our structure
-        return DragonflyResult(
-            status=status,
-            evaluation=evaluation,
-            score=score,
-            malware_family=malware_family,
-            malware_behaviours=malware_behaviours,
-            matched_rules=list(matched_rules),
-            errors=list(errors),
-            gui_url=self.Analysis.instance_url(analysis_id),
-        )
+        return result

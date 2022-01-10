@@ -11,7 +11,6 @@ def config():
     """
     Set or view config variables
     """
-    pass
 
 
 @config.command("get")
