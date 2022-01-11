@@ -1,6 +1,6 @@
 import dataclasses
-import logging
-from typing import List, Optional, Set, Union
+from typing import List, Optional, Set
+from typing_extensions import Literal
 
 from django_rest_client import (
     APIResource,
@@ -11,11 +11,9 @@ from django_rest_client import (
     RetrievableAPIResourceMixin,
 )
 from django_rest_client.types import Toid, TParams
-from typing_extensions import Literal
 
 from pydragonfly.sdk.const import ANALYZED, CLEAN, FAILED, REVOKED
-
-logger = logging.getLogger(__name__)
+from .report import Report
 
 
 class AnalysisResult:
@@ -23,6 +21,7 @@ class AnalysisResult:
     class RuleResult:
         name: str
         weight: int
+        score: int
 
         def __hash__(self):
             return hash((self.name, self.weight))
@@ -30,76 +29,105 @@ class AnalysisResult:
         def __eq__(self, other):
             return self.name == other.name and self.weight == other.weight
 
-    status: str
-    evaluation: str = CLEAN
-    score: int = 0
-    malware_family: str = None
-    malware_behaviours: List[str] = []
-    errors: List[str] = []
-    matched_rules: List[RuleResult] = []
+    # defaults
+    id: Toid
     gui_url: str
     api_url: str
+    status: str
+    evaluation: str = CLEAN
+    weight: int = 0
+    malware_family: Optional[str] = None
+    malware_families: List[str] = []
+    malware_behaviours: List[str] = []
+    reports: List[dict] = []
+    matched_rules: List[RuleResult] = []
+    # extras
+    score: int = 0
+    malware_family: Optional[str] = None
+    malware_behaviour: Optional[str] = None
+    errors: List[str] = []
 
     def __init__(self, analysis_id: Toid):
         self.id = analysis_id
-        # this can raise an exception
-        content = Analysis.retrieve(self.id).data
-        self.gui_url = content["gui_url"]
-        self.api_url = content["api_url"]
-        self.status = content["status"]
-        if self.is_ready():
-            self.__populate(content)
+        # fetch and populate
+        self.refresh()
 
-    def refresh(self):
-        self.__populate()
+    def __dict__(self) -> dict:
+        return {
+            "id": self.id,
+            "gui_url": self.gui_url,
+            "api_url": self.api_url,
+            "status": self.status,
+            "evaluation": self.evaluation,
+            "weight": self.weight,
+            "malware_families": self.malware_families,
+            "malware_behaviours": self.malware_behaviours,
+            "reports": self.reports,
+            "matched_rules": [dataclasses.asdict(mr) for mr in self.matched_rules],
+        }
 
-    def __populate(self, data: Optional[dict] = None):
-        if data is None:
-            # this can raise an exception
-            content = Analysis.retrieve(self.id).data
-        else:
-            content = data
-        self.status = content["status"]
-        if self.is_ready():
-
-            self.evaluation: str = content["evaluation"]
-            self.score: int = (
-                round(min(100, content["weight"]) / 10) if content["weight"] != 0 else 0
-            )
-            self.malware_family: Union[str, None] = (
-                content["malware_families"][0] if content["malware_families"] else None
-            )
-            self.malware_behaviours: List[str] = content["malware_behaviours"]
-            reports: List[int] = [report["id"] for report in content["reports"]]
-            self.errors: List[str] = list(
-                set(
-                    [
-                        report["error"]
-                        for report in content["reports"]
-                        if report["error"]
-                    ]
-                )
-            )
-            matched_rules: Set[AnalysisResult.RuleResult] = set()
-
-            for report_id in reports:
-                from pydragonfly.sdk.resources import Report
-
-                # we check the rules that matched each report
-                rules = Report.matched_rules(object_id=report_id).data
-                # and retrieve information about that
-                for rule in rules:
-                    name = rule["rule"]  # name of the rule that matched
-                    weight = (
-                        round(min(100, rule["weight"]) / 10)
-                        if rule["weight"] != 0
-                        else 0
-                    )
-                    matched_rules.add(AnalysisResult.RuleResult(name, weight))
-            self.matched_rules = list(matched_rules)
+    def asdict(self) -> dict:
+        return self.__dict__()
 
     def is_ready(self) -> bool:
         return self.status in [ANALYZED, FAILED, REVOKED]
+
+    def refresh(self) -> None:
+        """
+        Refetch result from server.
+        """
+        data = self.__fetch()
+        self.__populate(data)
+
+    def __fetch(self) -> dict:
+        matched_rules = []
+        data = Analysis.retrieve(self.id).data
+        self.status = data["status"]
+        if self.is_ready():
+            for report in data["reports"]:  # we fetch matched-rules against each report
+                rules = Report.matched_rules(
+                    object_id=report["id"]
+                ).data  # this can raise an exception
+                if rules:
+                    matched_rules.extend(rules)
+
+        return {**data, "matched_rules": matched_rules}
+
+    def __populate(self, data: dict) -> None:
+        # defaults
+        self.gui_url = data["gui_url"]
+        self.api_url = data["api_url"]
+        self.status = data["status"]
+        self.evaluation = data["evaluation"]
+        self.weight = data["weight"]
+        self.malware_families = data["malware_families"]
+        self.malware_behaviours = data["malware_behaviours"]
+        self.reports = data["reports"]
+        matched_rules: Set[AnalysisResult.RuleResult] = set()
+        for rule in data["matched_rules"]:
+            matched_rules.add(
+                AnalysisResult.RuleResult(
+                    name=rule["rule"],
+                    weight=rule["weight"],
+                    score=(
+                        round(min(100, rule["weight"]) / 10)
+                        if rule["weight"] != 0
+                        else 0
+                    ),
+                )
+            )
+        self.matched_rules = list(matched_rules)
+        # extra
+        self.score = round(min(100, self.weight) / 10) if self.weight != 0 else 0
+        self.malware_family = (
+            self.malware_families[0] if self.malware_families else None
+        )
+        self.malware_behaviour = (
+            self.malware_behaviours[0] if self.malware_behaviours else None
+        )
+        self.errors = list(
+            set([report["error"] for report in self.reports if report["error"]])
+        )
 
 
 @dataclasses.dataclass

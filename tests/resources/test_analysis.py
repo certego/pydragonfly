@@ -24,15 +24,15 @@ class AnalysisResultTestCase(TestCase):
     ]
 
     result_json = {
-        "id": "12",
+        "id": 12,
         "status": "ANALYZED",
         "evaluation": "MALICIOUS",
         "weight": 120,
         "malware_families": ["Ransomware", "Trojan"],
         "malware_behaviours": ["Crypt", "Test"],
+        "reports": [{"id": 1, "error": "Internal error"}],
         "gui_url": "https://dragonfly.certego.net/analysis/12",
         "api_url": "https://dragonfly.certego.net/api/analysis/12",
-        "reports": [{"id": 1, "error": "Internal error"}],
     }
 
     @patch(
@@ -49,13 +49,28 @@ class AnalysisResultTestCase(TestCase):
         self.assertEqual(result.id, 12)
         self.assertEqual(result.status, ANALYZED)
         self.assertEqual(result.evaluation, MALICIOUS)
+        self.assertEqual(result.reports, self.result_json["reports"])
         self.assertEqual(result.score, 10)
         self.assertEqual(result.malware_family, "Ransomware")
-        self.assertIn("Crypt", result.malware_behaviours)
+        self.assertEqual(result.malware_behaviour, "Crypt")
         self.assertEqual(result.errors, ["Internal error"])
         self.assertEqual(len(result.matched_rules), 1)
         self.assertEqual(result.matched_rules[0].name, "TestRule")
-        self.assertEqual(result.matched_rules[0].weight, 10)
+        self.assertEqual(result.matched_rules[0].weight, 97)
+        self.assertEqual(result.matched_rules[0].score, 10)
+        self.assertDictEqual(
+            result.asdict(),
+            {
+                **self.result_json,
+                "matched_rules": [
+                    {
+                        "name": self.matched_rules_json[0]["rule"],
+                        "weight": self.matched_rules_json[0]["weight"],
+                        "score": 10,
+                    }
+                ],
+            },
+        )
 
 
 class AnalysisResourceTestCase(APIResourceBaseTestCase):
