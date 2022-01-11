@@ -1,19 +1,20 @@
 import dataclasses
-from typing import Optional, List, Union, Set
-from typing_extensions import Literal
+import logging
+from typing import List, Optional, Set, Union
 
 from django_rest_client import (
-    APIResponse,
     APIResource,
-    RetrievableAPIResourceMixin,
-    ListableAPIResourceMixin,
+    APIResponse,
     CreateableAPIResourceMixin,
+    ListableAPIResourceMixin,
     PaginationAPIResourceMixin,
+    RetrievableAPIResourceMixin,
 )
 from django_rest_client.types import Toid, TParams
-import logging
+from typing_extensions import Literal
 
-from pydragonfly.sdk.const import FAILED, REVOKED, ANALYZED, CLEAN
+from pydragonfly.sdk.const import ANALYZED, CLEAN, FAILED, REVOKED
+from pydragonfly.sdk.resources import Report
 
 logger = logging.getLogger(__name__)
 
@@ -41,18 +42,21 @@ class AnalysisResult:
 
     def __init__(self, analysis_id: Toid):
         self.id = analysis_id
-        self.gui_url = Analysis.instance_url(self.id)
         try:
             content = Analysis.retrieve(self.id).data
         except Exception as e:
             logger.exception(e)
             self.status = FAILED
         else:
+            self.gui_url = content["gui_url"]
             self.status = content["status"]
             if self.is_ready():
-                self.populate(content)
+                self.__populate(content)
 
-    def populate(self, data: Optional[dict] = None):
+    def refresh(self):
+        self.__populate()
+
+    def __populate(self, data: Optional[dict] = None):
         if data is None:
             try:
                 content = Analysis.retrieve(self.id).data
@@ -84,7 +88,6 @@ class AnalysisResult:
                 )
             )
             matched_rules: Set[AnalysisResult.RuleResult] = set()
-            from pydragonfly.sdk.resources import Report
 
             for report_id in reports:
                 try:

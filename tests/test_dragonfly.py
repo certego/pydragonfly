@@ -1,4 +1,3 @@
-import io
 from unittest.mock import patch
 
 from pydragonfly.sdk.const import ANALYZED, MALICIOUS
@@ -21,10 +20,9 @@ class DragonflyTestCase(APIResourceBaseTestCase):
         return_value=MockAPIResponse(json_analysis_create, 200),
     )
     def test_analyze_file(self, *args, **kwargs):
-        with io.StringIO("testFile") as f:
-            ret = self.df.analyze_file(
-                sample=f, sample_name="test", retrieve_analysis=False
-            )
+        ret = self.df.analyze_file(
+            sample=b"test_sample", sample_name="test", retrieve_analysis=False
+        )
         self.assertEqual(ret, "1")
 
     @patch(

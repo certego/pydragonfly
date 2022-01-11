@@ -1,4 +1,3 @@
-import io
 import logging
 import time
 from typing import List, Union
@@ -54,7 +53,7 @@ class Dragonfly(APIClient):
 
     def analyze_file(
         self,
-        sample: io.IOBase,
+        sample: bytes,
         sample_name: str,
         retrieve_analysis: bool = True,
         profiles: List[int] = None,
@@ -66,7 +65,6 @@ class Dragonfly(APIClient):
     ) -> Union[AnalysisResult, int]:
         if profiles is None:
             profiles = [1, 2]
-        content = sample.read()
         data = self.Analysis.CreateAnalysisRequestBody(
             # We have 2 defaults profile, one for qiling, one for speakeasy.
             profiles=profiles,
@@ -87,7 +85,7 @@ class Dragonfly(APIClient):
         )
         try:
             resp = self.Analysis.create(
-                data=data, sample_name=sample_name, sample_buffer=content
+                data=data, sample_name=sample_name, sample_buffer=sample
             ).data
         except Exception as e:
             self._logger.exception(e)
@@ -111,6 +109,6 @@ class Dragonfly(APIClient):
             waiting_cycle: int = 0
             while not result.is_ready() and waiting_cycle < max_wait_cycle:
                 time.sleep(waiting_time)
-                result.populate()
+                result.refresh()
                 waiting_cycle += 1
         return result

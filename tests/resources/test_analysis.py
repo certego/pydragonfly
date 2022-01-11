@@ -46,7 +46,6 @@ class AnalysisResultTestCase(TestCase):
         self.assertTrue(result.is_ready())
         self.assertEqual(result.id, 12)
         self.assertEqual(result.gui_url, Analysis.instance_url(12))
-        result.populate()
         self.assertEqual(result.status, ANALYZED)
         self.assertEqual(result.evaluation, MALICIOUS)
         self.assertEqual(result.score, 10)
