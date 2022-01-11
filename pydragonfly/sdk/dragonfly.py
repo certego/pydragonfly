@@ -53,8 +53,8 @@ class Dragonfly(APIClient):
 
     def analyze_file(
         self,
-        sample: bytes,
         sample_name: str,
+        sample: bytes,
         retrieve_analysis: bool = True,
         profiles: List[int] = None,
         private: bool = False,
