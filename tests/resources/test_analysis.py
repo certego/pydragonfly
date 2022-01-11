@@ -30,6 +30,8 @@ class AnalysisResultTestCase(TestCase):
         "weight": 120,
         "malware_families": ["Ransomware", "Trojan"],
         "malware_behaviours": ["Crypt", "Test"],
+        "gui_url": "https://dragonfly.certego.com/analysis/12",
+        "api_url": "https://dragonfly.certego.com/api/analysis/12",
         "reports": [{"id": 1, "error": "Internal error"}],
     }
 
