@@ -11,19 +11,15 @@ class DragonflyTestCase(APIResourceBaseTestCase):
     def resource(self):
         return self.df
 
-    json_analysis_create = {
-        "id": "1",
-    }
-
     @patch(
         "pydragonfly.sdk.resources.analysis.Analysis.create",
-        return_value=MockAPIResponse(json_analysis_create, 200),
+        return_value=MockAPIResponse({"id": 1}, 200),
     )
     def test_analyze_file(self, *args, **kwargs):
         ret = self.df.analyze_file(
-            sample=b"test_sample", sample_name="test", retrieve_analysis=False
+            sample_name="test", sample_buffer=b"test_sample", retrieve_analysis=False
         )
-        self.assertEqual(ret, "1")
+        self.assertEqual(ret, 1)
 
     @patch(
         "pydragonfly.sdk.resources.analysis.Analysis.retrieve",

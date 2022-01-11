@@ -54,7 +54,7 @@ class Dragonfly(APIClient):
     def analyze_file(
         self,
         sample_name: str,
-        sample: bytes,
+        sample_buffer: bytes,
         retrieve_analysis: bool = True,
         profiles: List[int] = None,
         private: bool = False,
@@ -115,7 +115,7 @@ class Dragonfly(APIClient):
             dll_entrypoints=dll_entrypoints,
         )
         resp = self.Analysis.create(
-            data=data, sample_name=sample_name, sample_buffer=sample
+            data=data, sample_name=sample_name, sample_buffer=sample_buffer
         ).data
         analysis_id = resp["id"]
         if retrieve_analysis:

@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from pydragonfly.sdk.const import ANALYZED, MALICIOUS
-from pydragonfly.sdk.resources.analysis import Analysis, AnalysisResult
+from pydragonfly.sdk.resources.analysis import Analysis
 from tests.mock_utils import (
     MockAPIResponse,
     generic_200_mock,
@@ -44,10 +44,9 @@ class AnalysisResultTestCase(TestCase):
         return_value=MockAPIResponse(matched_rules_json, 200),
     )
     def test_populate(self, *args, **kwargs):
-        result = AnalysisResult(12)
+        result = Analysis.Result(12)
         self.assertTrue(result.is_ready())
         self.assertEqual(result.id, 12)
-        self.assertEqual(result.gui_url, Analysis.instance_url(12))
         self.assertEqual(result.status, ANALYZED)
         self.assertEqual(result.evaluation, MALICIOUS)
         self.assertEqual(result.score, 10)
