@@ -1,3 +1,4 @@
+import io
 import logging
 import time
 from typing import List, Union
@@ -53,21 +54,19 @@ class Dragonfly(APIClient):
 
     def analyze_file(
         self,
-        sample_path: str,
+        sample: io.IOBase,
+        sample_name: str,
+        retrieve_analysis: bool = True,
         profiles: List[int] = None,
         private: bool = False,
         root: bool = False,
-        os: str = None,
+        operating_system: str = None,
         arguments: List[str] = None,
         dll_entrypoints: List[str] = None,
-    ) -> Union[AnalysisResult]:
-
+    ) -> Union[AnalysisResult, int]:
         if profiles is None:
             profiles = [1, 2]
-
-        with open(sample_path, "rb") as f:
-            content = f.read()
-
+        content = sample.read()
         data = self.Analysis.CreateAnalysisRequestBody(
             # We have 2 defaults profile, one for qiling, one for speakeasy.
             profiles=profiles,
@@ -79,25 +78,27 @@ class Dragonfly(APIClient):
             root=root,
             # we can detected the OS on our backend.
             # It is required if you want to analyze shellcodes unfortunately
-            os=os,
+            os=operating_system,
             # the safer approach is that the sample did not require specific arguments
             arguments=arguments,
             # if not entrypoints are selected, and the sample is a dll
             # we will emulate a maximum of 100 entrypoints
             dll_entrypoints=dll_entrypoints,
         )
-        import os
-
         try:
             resp = self.Analysis.create(
-                data=data, sample_name=os.path.basename(f.name), sample_buffer=content
+                data=data, sample_name=sample_name, sample_buffer=content
             ).data
         except Exception as e:
             self._logger.exception(e)
             # if something goes wrong, we return a failure result
 
         else:
-            return self.analysis_result(resp["id"])
+            id = resp["id"]
+            if retrieve_analysis:
+                return self.analysis_result(id)
+            else:
+                return id
 
     def analysis_result(
         self,
