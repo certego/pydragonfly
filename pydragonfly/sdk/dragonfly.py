@@ -63,6 +63,37 @@ class Dragonfly(APIClient):
         arguments: List[str] = None,
         dll_entrypoints: List[str] = None,
     ) -> Union[AnalysisResult, int]:
+        """
+        Utility function to create a new analysis and get analysis ID
+        or optionally receive result directly.
+
+        Args:
+            ``sample_name`` (str):
+            Name of the sample to analyze.\n
+            ``sample_buffer`` (bytes):
+            Sample buffer in bytes form.\n
+            ``retrieve_analysis`` (bool, optional):
+            If ``True``, fetch and return result otherwise return only analysis ID.
+            Default ``True``.\n
+            ``profiles`` (List[int], optional):
+            List of IDs of profiles to emulate against. Default ``[1,2]``.\n
+            ``private`` (bool, optional):
+            Mark analysis as private limitting access to you
+            and members in your organization only. Requires paid subscription.
+            Default ``False``.\n
+            ``root`` (bool, optional):
+            Emulate with root permissions on OS level.
+            Default ``False``.\n
+            ``operating_system`` (str, optional):
+            OS of the given sample. Default ``None`` i.e. detected by dragonfly.\n
+            ``arguments`` (List[str], optional):
+            List of extra CLI arguments to pass to the emulator.
+            Only use if you know what you are doing.
+            Default ``None``.\n
+            ``dll_entrypoints`` (List[str], optional):
+            DLL entrypoints.
+            Default ``None``.
+        """
         if profiles is None:
             profiles = [1, 2]
         data = self.Analysis.CreateAnalysisRequestBody(
@@ -86,11 +117,11 @@ class Dragonfly(APIClient):
         resp = self.Analysis.create(
             data=data, sample_name=sample_name, sample_buffer=sample
         ).data
-        id = resp["id"]
+        analysis_id = resp["id"]
         if retrieve_analysis:
-            return self.analysis_result(id)
+            return self.analysis_result(analysis_id)
         else:
-            return id
+            return analysis_id
 
     def analysis_result(
         self,
@@ -98,6 +129,19 @@ class Dragonfly(APIClient):
         waiting_time: int = 10,
         max_wait_cycle: int = 30,  # 30 x 10 = 5 mins
     ) -> AnalysisResult:
+        """
+        Utility function to retrieve an analysis' result.
+
+        Total waiting time = ``waiting_time x max_wait_cycle``.
+
+        Args:
+           ``analysis_id`` (int|str):
+            Analysis ID to fetch result of.\n
+           ``waiting_time`` (int, optional):
+            Wait time between subsequent HTTP requests. Default ``10``.\n
+           ``max_wait_cycle`` (int, optional):
+            Maximum number of HTTP requests. Default ``30``.
+        """
         result = self.Analysis.Result(analysis_id)
         if max_wait_cycle:
             waiting_cycle: int = 0
