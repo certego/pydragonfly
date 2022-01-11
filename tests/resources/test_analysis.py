@@ -30,7 +30,14 @@ class AnalysisResultTestCase(TestCase):
         "weight": 120,
         "malware_families": ["Ransomware", "Trojan"],
         "malware_behaviours": ["Crypt", "Test"],
-        "reports": [{"id": 1, "error": "Internal error"}],
+        "sample": {"id": 1, "filename": "test"},
+        "reports": [
+            {
+                "id": 1,
+                "error": "Internal error",
+                "profile": {"id": 1, "filename": "test.ql"},
+            },
+        ],
         "gui_url": "https://dragonfly.certego.net/analysis/12",
         "api_url": "https://dragonfly.certego.net/api/analysis/12",
     }
@@ -62,6 +69,7 @@ class AnalysisResultTestCase(TestCase):
             result.asdict(),
             {
                 **self.result_json,
+                "score": 10,
                 "matched_rules": [
                     {
                         "name": self.matched_rules_json[0]["rule"],

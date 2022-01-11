@@ -39,6 +39,7 @@ class AnalysisResult:
     malware_family: Optional[str] = None
     malware_families: List[str] = []
     malware_behaviours: List[str] = []
+    sample: dict = {}
     reports: List[dict] = []
     matched_rules: List[RuleResult] = []
     # extras
@@ -60,8 +61,10 @@ class AnalysisResult:
             "status": self.status,
             "evaluation": self.evaluation,
             "weight": self.weight,
+            "score": self.score,
             "malware_families": self.malware_families,
             "malware_behaviours": self.malware_behaviours,
+            "sample": self.sample,
             "reports": self.reports,
             "matched_rules": [dataclasses.asdict(mr) for mr in self.matched_rules],
         }
@@ -81,7 +84,18 @@ class AnalysisResult:
 
     def __fetch(self) -> dict:
         matched_rules = []
-        data = Analysis.retrieve(self.id).data
+        data = Analysis.retrieve(
+            object_id=self.id,
+            params=TParams(
+                expand=["sample"],
+                omit=[
+                    "sample.sections",
+                    "sample.flags",
+                    "sample.dlls_imported",
+                    "sample.file_version_info",
+                ],
+            ),
+        ).data
         self.status = data["status"]
         if self.is_ready():
             for report in data["reports"]:  # we fetch matched-rules against each report
@@ -102,6 +116,7 @@ class AnalysisResult:
         self.weight = data["weight"]
         self.malware_families = data["malware_families"]
         self.malware_behaviours = data["malware_behaviours"]
+        self.sample = data["sample"]
         self.reports = data["reports"]
         matched_rules: Set[AnalysisResult.RuleResult] = set()
         for rule in data["matched_rules"]:
