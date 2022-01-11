@@ -83,20 +83,14 @@ class Dragonfly(APIClient):
             # we will emulate a maximum of 100 entrypoints
             dll_entrypoints=dll_entrypoints,
         )
-        try:
-            resp = self.Analysis.create(
-                data=data, sample_name=sample_name, sample_buffer=sample
-            ).data
-        except Exception as e:
-            self._logger.exception(e)
-            # if something goes wrong, we return a failure result
-
+        resp = self.Analysis.create(
+            data=data, sample_name=sample_name, sample_buffer=sample
+        ).data
+        id = resp["id"]
+        if retrieve_analysis:
+            return self.analysis_result(id)
         else:
-            id = resp["id"]
-            if retrieve_analysis:
-                return self.analysis_result(id)
-            else:
-                return id
+            return id
 
     def analysis_result(
         self,

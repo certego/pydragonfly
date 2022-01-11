@@ -38,31 +38,25 @@ class AnalysisResult:
     errors: List[str] = []
     matched_rules: List[RuleResult] = []
     gui_url: str
+    api_url: str
 
     def __init__(self, analysis_id: Toid):
         self.id = analysis_id
-        try:
-            content = Analysis.retrieve(self.id).data
-        except Exception as e:
-            logger.exception(e)
-            self.status = FAILED
-        else:
-            self.gui_url = content["gui_url"]
-            self.status = content["status"]
-            if self.is_ready():
-                self.__populate(content)
+        # this can raise an exception
+        content = Analysis.retrieve(self.id).data
+        self.gui_url = content["gui_url"]
+        self.api_url = content["api_url"]
+        self.status = content["status"]
+        if self.is_ready():
+            self.__populate(content)
 
     def refresh(self):
         self.__populate()
 
     def __populate(self, data: Optional[dict] = None):
         if data is None:
-            try:
-                content = Analysis.retrieve(self.id).data
-            except Exception as e:
-                logger.exception(e)
-                self.status = FAILED
-                return
+            # this can raise an exception
+            content = Analysis.retrieve(self.id).data
         else:
             content = data
         self.status = content["status"]
@@ -89,23 +83,19 @@ class AnalysisResult:
             matched_rules: Set[AnalysisResult.RuleResult] = set()
 
             for report_id in reports:
-                try:
-                    from pydragonfly.sdk.resources import Report
+                from pydragonfly.sdk.resources import Report
 
-                    # we check the rules that matched each report
-                    rules = Report.matched_rules(object_id=report_id).data
-                except Exception as e:
-                    logger.exception(e)
-                else:
-                    # and retrieve information about that
-                    for rule in rules:
-                        name = rule["rule"]  # name of the rule that matched
-                        weight = (
-                            round(min(100, rule["weight"]) / 10)
-                            if rule["weight"] != 0
-                            else 0
-                        )
-                        matched_rules.add(AnalysisResult.RuleResult(name, weight))
+                # we check the rules that matched each report
+                rules = Report.matched_rules(object_id=report_id).data
+                # and retrieve information about that
+                for rule in rules:
+                    name = rule["rule"]  # name of the rule that matched
+                    weight = (
+                        round(min(100, rule["weight"]) / 10)
+                        if rule["weight"] != 0
+                        else 0
+                    )
+                    matched_rules.add(AnalysisResult.RuleResult(name, weight))
             self.matched_rules = list(matched_rules)
 
     def is_ready(self) -> bool:
