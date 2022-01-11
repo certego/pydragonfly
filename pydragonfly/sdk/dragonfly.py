@@ -5,7 +5,6 @@ from typing import List, Union
 from django_rest_client import APIClient
 from django_rest_client.types import THeaders, Toid
 
-from .resources.analysis import AnalysisResult
 from ..version import VERSION
 from .resources import (
     Action,
@@ -20,6 +19,7 @@ from .resources import (
     UserAccessInfo,
     UserPreferences,
 )
+from .resources.analysis import AnalysisResult
 
 
 class Dragonfly(APIClient):
@@ -69,15 +69,22 @@ class Dragonfly(APIClient):
             content = f.read()
 
         data = self.Analysis.CreateAnalysisRequestBody(
-            profiles=profiles,  # this is a bit tricky. We have 2 defaults profile, one for qiling, one for speakeasy.
-            private=private,  # right now we do not support private analysis anyway
-            allow_actions=False,  # emulation hooks on rule matching. Not released yet
-            root=root,  # your wish here, imho executing thing as users is more common
+            # We have 2 defaults profile, one for qiling, one for speakeasy.
+            profiles=profiles,
+            # right now we do not support private analysis anyway
+            private=private,
+            # emulation hooks on rule matching. Not released yet
+            allow_actions=False,
+            # your wish here, imho executing thing as users is more common
+            root=root,
+            # we can detected the OS on our backend.
+            # It is required if you want to analyze shellcodes unfortunately
             os=os,
-            # we can detected the OS on our backend. It is required if you want to analyze shellcodes unfortunately
-            arguments=arguments,  # the safer approach is that the sample did not require specific arguments
+            # the safer approach is that the sample did not require specific arguments
+            arguments=arguments,
+            # if not entrypoints are selected, and the sample is a dll
+            # we will emulate a maximum of 100 entrypoints
             dll_entrypoints=dll_entrypoints,
-            # if not entrypoints are selected, and the sample is a dll, we will emulate a maximum of 100 entrypoints
         )
         import os
 

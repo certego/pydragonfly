@@ -1,17 +1,17 @@
-from pydragonfly.sdk.const import MALICIOUS, ANALYZED
-from pydragonfly.sdk.resources.analysis import AnalysisResult, Analysis
-from . import APIResourceBaseTestCase, APIResource
-from unittest import TestCase, SkipTest
+from unittest import TestCase
 
-
+from pydragonfly.sdk.const import ANALYZED, MALICIOUS
+from pydragonfly.sdk.resources.analysis import Analysis, AnalysisResult
 from tests.mock_utils import (
+    MockAPIResponse,
     generic_200_mock,
     generic_201_mock,
     generic_204_mock,
     if_mock_connections,
     patch,
-    MockAPIResponse,
 )
+
+from . import APIResource, APIResourceBaseTestCase
 
 
 class AnalysisResultTestCase(TestCase):
