@@ -14,7 +14,6 @@ from django_rest_client.types import Toid, TParams
 from typing_extensions import Literal
 
 from pydragonfly.sdk.const import ANALYZED, CLEAN, FAILED, REVOKED
-from pydragonfly.sdk.resources import Report
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +90,8 @@ class AnalysisResult:
 
             for report_id in reports:
                 try:
+                    from pydragonfly.sdk.resources import Report
+
                     # we check the rules that matched each report
                     rules = Report.matched_rules(object_id=report_id).data
                 except Exception as e:
