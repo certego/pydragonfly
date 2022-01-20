@@ -1,6 +1,6 @@
-from . import APIResourceBaseTestCase, APIResource
-
 from tests.mock_utils import generic_200_mock, generic_201_mock
+
+from . import APIResource, APIResourceBaseTestCase
 
 
 class RuleResourceTestCase(APIResourceBaseTestCase):
@@ -20,7 +20,7 @@ class RuleResourceTestCase(APIResourceBaseTestCase):
                     "order": True,
                 },
                 malware_family="test__create",
-                malware_behaviour="PUA",
+                mitre_technique="T1548",
                 sensitive=False,
                 meta_description={"author": "test__create"},
             )
@@ -38,4 +38,14 @@ class RuleResourceTestCase(APIResourceBaseTestCase):
     @generic_200_mock
     def test__aggregate_malware_behaviour(self, *args, **kwargs):
         response = self.resource.aggregate_malware_behaviour()
+        self.assertEqual(200, response.code)
+
+    @generic_200_mock
+    def test__aggregate_mitre_technique(self, *args, **kwargs):
+        response = self.resource.aggregate_mitre_technique()
+        self.assertEqual(200, response.code)
+
+    @generic_200_mock
+    def test__mitre(self, *args, **kwargs):
+        response = self.resource.mitre()
         self.assertEqual(200, response.code)

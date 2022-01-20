@@ -39,7 +39,7 @@ class AnalysisResult:
     weight: int = 0
     malware_families: List[str] = []
     malware_behaviours: List[str] = []  # deprecated
-    mitre_techniques: List[str] = []
+    mitre_techniques: List[Dict] = []
     sample: Dict = {}
     reports: List[Dict] = []
     matched_rules: List[RuleResult] = []
@@ -116,7 +116,12 @@ class AnalysisResult:
         self.evaluation = data["evaluation"]
         self.weight = data["weight"]
         self.malware_families = data["malware_families"]
-        self.malware_behaviours = self.mitre_techniques = data["mitre_techniques"]
+        self.mitre_techniques = data["mitre_techniques"]
+        self.malware_behaviours = [  # deprecated
+            technique["name"]
+            for tactic in self.mitre_techniques
+            for technique in tactic["techniques"]
+        ]
         self.sample = data["sample"]
         self.reports = data["reports"]
         matched_rules: Set[AnalysisResult.RuleResult] = set()
@@ -138,7 +143,7 @@ class AnalysisResult:
         self.malware_family = (
             self.malware_families[0] if self.malware_families else None
         )
-        self.malware_behaviour = (
+        self.malware_behaviour = (  # deprecated
             self.malware_behaviours[0] if self.malware_behaviours else None
         )
         self.errors = list(

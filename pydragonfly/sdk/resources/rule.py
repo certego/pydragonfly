@@ -1,14 +1,14 @@
 import dataclasses
-from typing import Optional, List
-from typing_extensions import Literal
+from typing import List, Optional
+
 from django_rest_client import (
     APIResource,
     APIResponse,
-    RetrievableAPIResourceMixin,
-    ListableAPIResourceMixin,
     CreateableAPIResourceMixin,
-    UpdateableAPIResourceMixin,
+    ListableAPIResourceMixin,
     PaginationAPIResourceMixin,
+    RetrievableAPIResourceMixin,
+    UpdateableAPIResourceMixin,
 )
 from django_rest_client.types import Toid, TParams
 
@@ -20,25 +20,7 @@ class CreateRuleRequestBody:
     modules: dict
     variables: List[str] = dataclasses.field(default_factory=list)
     malware_family: str = ""
-    malware_behaviour: Literal[
-        "PUA",
-        "Riskware",
-        "Adware",
-        "Greyware",
-        "Downloader",
-        "Bot",
-        "Trojan",
-        "Backdoor",
-        "Coinminer",
-        "Worm",
-        "Rootkit",
-        "Infostealer",
-        "Banker",
-        "Ransomware",
-        "Spyware",
-        "Miner",
-        "Unpacker",
-    ] = ""
+    mitre_technique: str = None
     meta_description: dict = dataclasses.field(default_factory=dict)
     sensitive: bool = False
 
@@ -70,7 +52,7 @@ class Rule(
         "rule",
         "weight",
         "malware_family",
-        "malware_behaviour",
+        "mitre_technique",
     ]
 
     # models
@@ -99,9 +81,22 @@ class Rule(
         return super().update(object_id=object_id, data=post_data, params=params)
 
     @classmethod
+    def mitre(cls, params: Optional[TParams] = None) -> APIResponse:
+        url = cls.class_url() + "/mitre"
+        return cls._request("GET", url=url, params=params)
+
+    @classmethod
     def aggregate_malware_behaviour(
         cls,
         params: Optional[TParams] = None,
     ) -> APIResponse:
-        url = cls.class_url() + "/aggregate/malware_behaviour"
+        # deprecated
+        return cls.aggregate_mitre_technique(params=params)
+
+    @classmethod
+    def aggregate_mitre_technique(
+        cls,
+        params: Optional[TParams] = None,
+    ) -> APIResponse:
+        url = cls.class_url() + "/aggregate/mitre_technique"
         return cls._request("GET", url=url, params=params)
