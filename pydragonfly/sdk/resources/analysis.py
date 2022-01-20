@@ -1,6 +1,5 @@
 import dataclasses
-from typing import List, Optional, Set
-from typing_extensions import Literal
+from typing import Dict, List, Optional, Set
 
 from django_rest_client import (
     APIResource,
@@ -11,8 +10,10 @@ from django_rest_client import (
     RetrievableAPIResourceMixin,
 )
 from django_rest_client.types import Toid, TParams
+from typing_extensions import Literal
 
 from pydragonfly.sdk.const import ANALYZED, CLEAN, FAILED, REVOKED
+
 from .report import Report
 
 
@@ -36,16 +37,16 @@ class AnalysisResult:
     status: str
     evaluation: str = CLEAN
     weight: int = 0
-    malware_family: Optional[str] = None
     malware_families: List[str] = []
-    malware_behaviours: List[str] = []
-    sample: dict = {}
-    reports: List[dict] = []
+    malware_behaviours: List[str] = []  # deprecated
+    mitre_techniques: List[str] = []
+    sample: Dict = {}
+    reports: List[Dict] = []
     matched_rules: List[RuleResult] = []
     # extras
     score: int = 0
     malware_family: Optional[str] = None
-    malware_behaviour: Optional[str] = None
+    malware_behaviour: Optional[str] = None  # deprecated
     errors: List[str] = []
 
     def __init__(self, analysis_id: Toid):
@@ -63,7 +64,7 @@ class AnalysisResult:
             "weight": self.weight,
             "score": self.score,
             "malware_families": self.malware_families,
-            "malware_behaviours": self.malware_behaviours,
+            "mitre_techniques": self.mitre_techniques,
             "sample": self.sample,
             "reports": self.reports,
             "matched_rules": [dataclasses.asdict(mr) for mr in self.matched_rules],
@@ -115,7 +116,7 @@ class AnalysisResult:
         self.evaluation = data["evaluation"]
         self.weight = data["weight"]
         self.malware_families = data["malware_families"]
-        self.malware_behaviours = data["malware_behaviours"]
+        self.malware_behaviours = self.mitre_techniques = data["mitre_techniques"]
         self.sample = data["sample"]
         self.reports = data["reports"]
         matched_rules: Set[AnalysisResult.RuleResult] = set()

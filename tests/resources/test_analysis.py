@@ -29,7 +29,7 @@ class AnalysisResultTestCase(TestCase):
         "evaluation": "MALICIOUS",
         "weight": 120,
         "malware_families": ["Ransomware", "Trojan"],
-        "malware_behaviours": ["Crypt", "Test"],
+        "mitre_techniques": ["Crypt", "Test"],
         "sample": {"id": 1, "filename": "test"},
         "reports": [
             {
