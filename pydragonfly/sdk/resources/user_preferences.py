@@ -21,6 +21,8 @@ class UserPreferences(
 ):
     """
     :class:`pydragonfly.Dragonfly.UserPreferences`
+
+    .. versionadded:: 0.0.2
     """
 
     OBJECT_NAME = "api.me.preferences"

@@ -36,6 +36,11 @@ class RuleResourceTestCase(APIResourceBaseTestCase):
         self.assertEqual(200, response.code)
 
     @generic_200_mock
+    def test__mitre(self, *args, **kwargs):
+        response = self.resource.mitre()
+        self.assertEqual(200, response.code)
+
+    @generic_200_mock
     def test__aggregate_malware_behaviour(self, *args, **kwargs):
         response = self.resource.aggregate_malware_behaviour()
         self.assertEqual(200, response.code)
@@ -46,6 +51,6 @@ class RuleResourceTestCase(APIResourceBaseTestCase):
         self.assertEqual(200, response.code)
 
     @generic_200_mock
-    def test__mitre(self, *args, **kwargs):
-        response = self.resource.mitre()
+    def test__aggregate_behaviour(self, *args, **kwargs):
+        response = self.resource.aggregate_behaviour()
         self.assertEqual(200, response.code)

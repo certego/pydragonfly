@@ -94,6 +94,8 @@ class Dragonfly(APIClient):
             ``dll_entrypoints`` (List[str], optional):
              DLL entrypoints.
              Default ``None``.
+
+        .. versionadded:: 0.0.4
         """
         if profiles is None:
             profiles = [1, 2]
@@ -142,6 +144,8 @@ class Dragonfly(APIClient):
             Wait time between subsequent HTTP requests. Default ``10``.\n
            ``max_wait_cycle`` (int, optional):
             Maximum number of HTTP requests. Default ``30``.
+
+        .. versionadded:: 0.0.4
         """
         result = self.Analysis.Result(analysis_id)
         if max_wait_cycle:

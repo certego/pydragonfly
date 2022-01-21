@@ -54,8 +54,13 @@ def _display_single_analysis(data: Dict) -> None:
                 f"{style}Status:[/] {get_status_text(data['status'], False)}",
                 f"{style}Evaluation:[/] {get_status_text(data['evaluation'], False)}",
                 f"{style}Weight:[/] {data['weight']}",
-                f"{style}Malware Families:[/] {data['malware_families']}",
-                f"{style}Mitre Techniques:[/] {data['mitre_techniques']}",
+                f"{style}Malware Families:[/] " + ",".join(data["malware_families"]),
+                f"{style}Mitre Techniques:[/] "
+                + ",".join(
+                    f"[link={technique['mitre_url']}]{technique['name']}[/link]"
+                    for tactic in data["mitre_techniques"]
+                    for technique in tactic["techniques"]
+                ),
             ),
             title="Result Overview",
         ),
@@ -100,7 +105,10 @@ def _generate_analysis_table(rows: List[Dict]) -> Table:
             f"[link={el['gui_url']}]{Emoji('link')} {el['id']}[/link]",
             get_datetime_text(el["created_at"]),
             f"{el['sample']['filename']}\n({el['sample']['os']}, {el['sample']['arch']}, {el['sample']['mode']})",
-            ",".join(el["mitre_techniques"]),
+            ",".join(
+                f"[link={tactic['mitre_url']}]{tactic['name']}[/link]"
+                for tactic in el["mitre_techniques"]
+            ),
             ",".join(el["malware_families"]),
             get_status_text(el["status"]),
             get_status_text(el["evaluation"]),
@@ -147,10 +155,12 @@ def _generate_rule_table(rows: List[Dict]) -> Table:
             str(el["id"]),
             get_success_text(str(el["enabled"])),
             el["rule"],
-            get_json_syntax(el["meta_description"]),
-            el["mitre_technique"],
+            get_json_syntax(el["meta_description"]) if el["meta_description"] else None,
+            f"[link={el['mitre_technique']['mitre_url']}]{el['mitre_technique']['name']}[/link]"
+            if el["mitre_technique"]
+            else None,
             el["malware_family"],
-            get_json_syntax(el["variables"]),
+            get_json_syntax(el["variables"]) if el["variables"] else None,
             get_weight_text(el["weight"]),
         )
     return table

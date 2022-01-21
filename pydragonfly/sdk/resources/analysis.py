@@ -18,6 +18,10 @@ from .report import Report
 
 
 class AnalysisResult:
+    """
+    .. versionadded:: 0.0.4
+    """
+
     @dataclasses.dataclass
     class RuleResult:
         name: str
@@ -38,7 +42,9 @@ class AnalysisResult:
     evaluation: str = CLEAN
     weight: int = 0
     malware_families: List[str] = []
-    malware_behaviours: List[str] = []  # deprecated
+    #: deprecated in favor of ``mitre_techniques``.
+    malware_behaviours: List[str] = []
+    #: .. versionadded:: 0.1.0
     mitre_techniques: List[Dict] = []
     sample: Dict = {}
     reports: List[Dict] = []
@@ -46,7 +52,8 @@ class AnalysisResult:
     # extras
     score: int = 0
     malware_family: Optional[str] = None
-    malware_behaviour: Optional[str] = None  # deprecated
+    #: deprecated
+    malware_behaviour: Optional[str] = None
     errors: List[str] = []
 
     def __init__(self, analysis_id: Toid):

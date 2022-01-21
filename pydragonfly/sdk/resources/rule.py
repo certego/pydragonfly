@@ -82,6 +82,9 @@ class Rule(
 
     @classmethod
     def mitre(cls, params: Optional[TParams] = None) -> APIResponse:
+        """
+        .. versionadded:: 0.1.0
+        """
         url = cls.class_url() + "/mitre"
         return cls._request("GET", url=url, params=params)
 
@@ -90,7 +93,10 @@ class Rule(
         cls,
         params: Optional[TParams] = None,
     ) -> APIResponse:
-        # deprecated
+        """
+        Deprecated in favor of ``aggregate_mitre_technique``.
+        Will be removed in next release.
+        """
         return cls.aggregate_mitre_technique(params=params)
 
     @classmethod
@@ -98,5 +104,19 @@ class Rule(
         cls,
         params: Optional[TParams] = None,
     ) -> APIResponse:
+        """
+        .. versionadded:: 0.1.0
+        """
         url = cls.class_url() + "/aggregate/mitre_technique"
+        return cls._request("GET", url=url, params=params)
+
+    @classmethod
+    def aggregate_behaviour(
+        cls,
+        params: Optional[TParams] = None,
+    ) -> APIResponse:
+        """
+        .. versionadded:: 0.1.0
+        """
+        url = cls.class_url() + "/aggregate/behaviour"
         return cls._request("GET", url=url, params=params)
