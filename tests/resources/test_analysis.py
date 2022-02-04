@@ -89,6 +89,7 @@ class AnalysisResultTestCase(TestCase):
                         "score": 10,
                     }
                 ],
+                "malware_behaviours": ["test_technique"],
             },
         )
 
