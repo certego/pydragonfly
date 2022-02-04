@@ -122,7 +122,7 @@ class AnalysisResult:
         return {**data, "matched_rules": matched_rules}
 
     @staticmethod
-    def parse_mitre_techniques(data: dict) -> List[Dict]:
+    def parse_mitre_techniques(mitre_techniques: List[Dict]) -> List[Dict]:
         return (
             [
                 {
@@ -136,10 +136,10 @@ class AnalysisResult:
                         for technique in tactic["techniques"]
                     ],
                 }
-                for tactic in data["mitre_techniques"]
+                for tactic in mitre_techniques
                 if tactic["techniques"]
             ]
-            if data["mitre_techniques"]
+            if mitre_techniques
             else []
         )
 
@@ -152,7 +152,9 @@ class AnalysisResult:
         self.evaluation = data["evaluation"]
         self.weight = data["weight"]
         self.malware_families = data["malware_families"]
-        self.mitre_techniques = self.parse_mitre_techniques(data)
+        self.mitre_techniques = self.parse_mitre_techniques(
+            data.get("mitre_techniques", [])
+        )
         self.malware_behaviours = [  # deprecated
             technique["name"]
             for tactic in self.mitre_techniques
@@ -235,7 +237,7 @@ class Analysis(
         result = super().retrieve(object_id=object_id, params=params)
 
         result.data["mitre_techniques"] = AnalysisResult.parse_mitre_techniques(
-            result.data
+            result.data.get("mitre_techniques", [])
         )
         # for backwards compatibility
         result.data["malware_behaviours"] = [  # deprecated
