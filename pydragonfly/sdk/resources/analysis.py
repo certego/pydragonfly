@@ -231,11 +231,13 @@ class Analysis(
         object_id: Toid,
         params: Optional[TParams] = None,
     ) -> APIResponse:
+
         result = super().retrieve(object_id=object_id, params=params)
 
         result.data["mitre_techniques"] = AnalysisResult.parse_mitre_techniques(
             result.data
         )
+        # for backwards compatibility
         result.data["malware_behaviours"] = [  # deprecated
             technique["name"]
             for tactic in result.data["mitre_techniques"]
