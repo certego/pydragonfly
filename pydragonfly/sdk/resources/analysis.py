@@ -14,8 +14,8 @@ from typing_extensions import Literal
 
 from pydragonfly.sdk.const import ANALYZED, CLEAN, FAILED, REVOKED
 
-from .report import Report
 from ._utils import omit_keys
+from .report import Report
 
 
 class AnalysisResult:
@@ -73,6 +73,7 @@ class AnalysisResult:
             "weight": self.weight,
             "score": self.score,
             "malware_families": self.malware_families,
+            "malware_behaviours": self.malware_behaviours,
             "mitre_techniques": self.mitre_techniques,
             "sample": self.sample,
             "reports": self.reports,
@@ -120,16 +121,9 @@ class AnalysisResult:
 
         return {**data, "matched_rules": matched_rules}
 
-    def __populate(self, data: dict) -> None:
-        # defaults
-        self.created_at = data["created_at"]
-        self.gui_url = data["gui_url"]
-        self.api_url = data["api_url"]
-        self.status = data["status"]
-        self.evaluation = data["evaluation"]
-        self.weight = data["weight"]
-        self.malware_families = data["malware_families"]
-        self.mitre_techniques = (
+    @staticmethod
+    def parse_mitre_techniques(data: dict) -> List[Dict]:
+        return (
             [
                 {
                     "tid": tactic["tid"],
@@ -148,6 +142,17 @@ class AnalysisResult:
             if data["mitre_techniques"]
             else []
         )
+
+    def __populate(self, data: dict) -> None:
+        # defaults
+        self.created_at = data["created_at"]
+        self.gui_url = data["gui_url"]
+        self.api_url = data["api_url"]
+        self.status = data["status"]
+        self.evaluation = data["evaluation"]
+        self.weight = data["weight"]
+        self.malware_families = data["malware_families"]
+        self.mitre_techniques = self.parse_mitre_techniques(data)
         self.malware_behaviours = [  # deprecated
             technique["name"]
             for tactic in self.mitre_techniques
@@ -219,6 +224,24 @@ class Analysis(
     ]
     CreateAnalysisRequestBody = CreateAnalysisRequestBody
     Result = AnalysisResult
+
+    @classmethod
+    def retrieve(
+        cls,
+        object_id: Toid,
+        params: Optional[TParams] = None,
+    ) -> APIResponse:
+        result = super().retrieve(object_id=object_id, params=params)
+
+        result.data["mitre_techniques"] = AnalysisResult.parse_mitre_techniques(
+            result.data
+        )
+        result.data["malware_behaviours"] = [  # deprecated
+            technique["name"]
+            for tactic in result.data["mitre_techniques"]
+            for technique in tactic["techniques"]
+        ]
+        return result
 
     @classmethod
     def create(
