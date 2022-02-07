@@ -2,7 +2,7 @@
 from typing import Dict, List
 
 from rich import box
-from rich.console import Console, RenderGroup
+from rich.console import Console, Group
 from rich.emoji import Emoji
 from rich.panel import Panel
 from rich.table import Table
@@ -23,12 +23,12 @@ def _display_single_analysis(data: Dict) -> None:
     sample = data["sample"]
     panels = [
         Panel(
-            RenderGroup(
+            Group(
                 f"[i green]{Emoji('information')} Visit the GUI page to see all info[/]",
             ),
         ),
         Panel(
-            RenderGroup(
+            Group(
                 f"{style}ID:[/] {data['id']}",
                 f"{style}Date:[/] {data['created_at']}",
                 f"{style}User:[/] {user['username']}",
@@ -39,7 +39,7 @@ def _display_single_analysis(data: Dict) -> None:
             title="Attributes",
         ),
         Panel(
-            RenderGroup(
+            Group(
                 f"{style}Name:[/] {sample['filename']}",
                 f"{style}Behaviour:[/] {sample['malware_type']} ({sample['mimetype']})",
                 f"{style}Operating System:[/] {sample['os']} ({sample['arch']}, {sample['mode']})",
@@ -50,7 +50,7 @@ def _display_single_analysis(data: Dict) -> None:
             title="Sample Information",
         ),
         Panel(
-            RenderGroup(
+            Group(
                 f"{style}Status:[/] {get_status_text(data['status'], False)}",
                 f"{style}Evaluation:[/] {get_status_text(data['evaluation'], False)}",
                 f"{style}Weight:[/] {data['weight']}",
@@ -65,9 +65,9 @@ def _display_single_analysis(data: Dict) -> None:
             title="Result Overview",
         ),
         Panel(
-            RenderGroup(
+            Group(
                 *[
-                    RenderGroup(
+                    Group(
                         f"{style}Report[/] - [cyan]#{report['id']} \[{report['profile']['filename']}, {report['profile']['emulator']}][/]",
                         f"\tStatus: {get_status_text(report['status'], False)}",
                         f"\tEvaluation: {get_status_text(report['evaluation'], False)}",
