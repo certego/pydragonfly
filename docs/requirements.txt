@@ -1,5 +1,5 @@
 -r ../requirements.txt
-Sphinx==4.4.0
+Sphinx==4.5.0
 sphinx-rtd-theme
 sphinxcontrib.asciinema
 sphinxcontrib-napoleon
